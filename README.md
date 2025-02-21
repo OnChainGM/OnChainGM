@@ -40,22 +40,6 @@ function getGMointPoints(address user) public view returns (uint256);
 - **Total Successful Transactions:** `{successfulTransactionsCount}`
 - **Unique Users:** `{uniqueUsers.length}`
 
-## 🚀 How to Deploy & Use
-### 📌 Deployment Steps
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/your-repo/onchaingm.git
-   cd onchaingm
-   ```
-2. Compile and deploy using Hardhat/Remix.
-3. Interact with the contract using Etherscan or a frontend UI.
-
-### 🛠 Example Interaction (Using Web3.js)
-```javascript
-const contract = new web3.eth.Contract(OnChainGM_ABI, OnChainGM_ADDRESS);
-await contract.methods.onChainGM().send({ from: userAddress, value: web3.utils.toWei('0.000029', 'ether') });
-```
-
 ## 📄 License
 This project is licensed under the **MIT License**.
 
