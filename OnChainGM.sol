@@ -1,53 +1,45 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.28;
+pragma solidity ^0.8.0;
 
 contract OnChainGM {
-    // Immutable variables don't use storage slots
-    address public immutable feeRecipient;
-    uint256 public immutable GM_FEE;
-    uint256 public constant TIME_LIMIT = 24 hours;
-    
-    // Mapping to store last GM timestamp for each user
-    mapping(address => uint256) public lastGMTimestamp;
-    
-    // Event for tracking GMs
-    event OnChainGMEvent(address indexed sender);
-    
-    constructor() {
-        feeRecipient = 0x7500A83DF2aF99B2755c47B6B321a8217d876a85;
-        GM_FEE = 0.000029 ether;
-    }
-    
-    // Gas optimized GM function with timestamp check
-    function onChainGM() external payable {
+    address public constant feeRecipient = 0x7500A83DF2aF99B2755c47B6B321a8217d876a85;
+    uint256 public constant GM_FEE = 0.000029 ether;
+    uint256 public constant REFERRAL_PERCENT = 10;
+    mapping(address => uint256) public lastGMDay;
+    event OnChainGMEvent(address indexed sender, address indexed referrer);
+    event ReferralFailed(address indexed referrer, uint256 amount);
+    function onChainGM(address referrer) external payable {
         if (msg.value != GM_FEE) {
             revert("Incorrect ETH fee");
         }
-        
-        // Check if 24 hours have passed since last GM
-        if (!(block.timestamp >= lastGMTimestamp[msg.sender] + TIME_LIMIT || lastGMTimestamp[msg.sender] == 0)) {
-            revert("Wait 24 hours");
+        uint256 currentDay = block.timestamp / 86400;
+        if (lastGMDay[msg.sender] == currentDay) {
+            revert("Already sent GM today");
         }
-        
-        // Update last GM timestamp
-        lastGMTimestamp[msg.sender] = block.timestamp;
-        
-        // Transfer fee after all checks
-        (bool success,) = feeRecipient.call{value: msg.value}("");
+        lastGMDay[msg.sender] = currentDay;
+
+        uint256 refAmount = 0;
+        if (referrer != address(0)) {
+            refAmount = (msg.value * REFERRAL_PERCENT) / 100;
+            (bool refSuccess, ) = referrer.call{value: refAmount}("");
+            if (!refSuccess) {
+                emit ReferralFailed(referrer, refAmount);
+                refAmount = 0;
+            }
+        }
+        uint256 remaining = msg.value - refAmount;
+        (bool success, ) = feeRecipient.call{value: remaining}("");
         if (!success) {
             revert("Fee transfer failed");
         }
-        
-        emit OnChainGMEvent(msg.sender);
+        emit OnChainGMEvent(msg.sender, referrer);
     }
-    
-    // View function to check remaining time
     function timeUntilNextGM(address user) external view returns (uint256) {
-        if (lastGMTimestamp[user] == 0) return 0;
-        
-        uint256 timePassed = block.timestamp - lastGMTimestamp[user];
-        if (timePassed >= TIME_LIMIT) return 0;
-        
-        return TIME_LIMIT - timePassed;
+        uint256 currentDay = block.timestamp / 86400;
+        if (lastGMDay[user] < currentDay) {
+            return 0;
+        }
+        uint256 nextMidnight = (currentDay + 1) * 86400;
+        return nextMidnight - block.timestamp;
     }
 }
