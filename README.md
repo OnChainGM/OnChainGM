@@ -104,7 +104,7 @@ MIT License — feel free to build on it, fork it, or integrate it into your dAp
 
 This contract is deployed and verified on Optimism:
 
-👉 [View on  Etherscan](https://optimism.blockscout.com/address/0x98F935ed6BD5b749AdeA581B50aF2ff0C1F89dEC?tab=contract)
+👉 [View on  Blockscout](https://optimism.blockscout.com/address/0x98F935ed6BD5b749AdeA581B50aF2ff0C1F89dEC?tab=contract)
 
 ```
 
