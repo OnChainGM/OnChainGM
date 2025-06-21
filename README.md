@@ -2,57 +2,103 @@
 
 OnChainGM is a smart contract that enables users to send a "GM" (Good Morning) transaction once every 24 hours on-chain. Each GM transaction requires a small ETH fee and is recorded on the blockchain. The project supports a referral-based reward system and tracks user activity on multiple networks.
 
-# OnChainGM Smart Contract
+# 🌞 OnChainGM
 
-## Overview
-OnChainGM is a decentralized smart contract deployed on the Optimism network that allows users to send a daily "GM" (Good Morning) transaction. Users must wait 24 hours between each GM transaction and pay a small fee to participate. The contract ensures fairness by enforcing time limits and handling ETH fee transfers securely.
+**OnChainGM** is a minimalist Ethereum smart contract that lets users send an on-chain “GM” (Good Morning) message once per day, optionally rewarding the person who referred them.
 
-## Features
-- **Daily GM Transactions:** Users can send one GM transaction every 24 hours.
-- **Immutable Fee & Recipient:** A fixed fee of `0.000029 ETH` is required per GM transaction, sent to a predefined recipient address.
-- **Time Lock Mechanism:** Enforces a 24-hour cooldown period between GM transactions per user.
-- **Event Logging:** Emits an event (`OnChainGMEvent`) for every GM transaction.
-- **Fee Transfer Security:** Ensures successful ETH transfer to the recipient.
-- **Query Function:** Users can check their remaining cooldown time before sending another GM.
+---
 
-## Smart Contract Details
-- **Network:** Optimism
-- **Fee Recipient:** `0x7500A83DF2aF99B2755c47B6B321a8217d876a85`
-- **GM Fee:** `0.000029 ETH`
-- **Time Limit:** `24 hours`
+## 🚀 Features
 
-## Functions
-### `onChainGM()`
-**Description:** Allows a user to send a GM transaction if they meet the required conditions.
+- ✅ Daily GM — only once per day per address  
+- 💸 Optional referral reward (10% of the fee)  
+- 📦 Emits events for every GM and failed referral  
+- 🔐 Fully on-chain and permissionless  
 
-**Requirements:**
-1. Must send exactly `0.000029 ETH`.
-2. Must wait `24 hours` since their last GM transaction.
-3. ETH transfer to the fee recipient must succeed.
+---
 
-**Events:**
-- Emits `OnChainGMEvent` when a GM transaction is successfully recorded.
+## 📄 Contract Info
+
+- **Name**: `OnChainGM`  
+- **Language**: Solidity `^0.8.0`  
+- **License**: MIT  
+- **Fee**: `0.000029 ETH` (29,000 Gwei)  
+
+---
+
+## 💸 Fee Breakdown
+
+| Purpose               | Amount           |
+|------------------------|------------------|
+| Total Fee              | `0.000029 ETH`   |
+| Referral Reward (10%)  | `0.0000029 ETH`  |
+| Sent to Fee Recipient  | `0.0000261 ETH`  |
+
+- **Fee Recipient**: [`0x7500A83DF2aF99B2755c47B6B321a8217d876a85`](https://etherscan.io/address/0x7500A83DF2aF99B2755c47B6B321a8217d876a85)
+
+---
+
+## ⚙️ Functions
+
+### `onChainGM(address referrer)`
+
+Send your daily GM and optionally specify a `referrer`.
+
+- Requires exactly `0.000029 ETH` as msg.value  
+- Emits `OnChainGMEvent(sender, referrer)`  
+- If referrer is non-zero and transfer succeeds → sends 10% of fee  
+- If transfer fails → logs `ReferralFailed`  
 
 ### `timeUntilNextGM(address user) → uint256`
-**Description:** Returns the remaining time (in seconds) until a user can send their next GM transaction.
 
-**Return Values:**
-- `0` if the user is eligible to send a GM.
-- Remaining seconds if the user needs to wait.
+Returns how many seconds remain until the specified user can GM again.
 
-## Usage
-1. Ensure you are connected to the Optimism network.
-2. Call `onChainGM()` and send `0.000029 ETH` to participate.
-3. Wait 24 hours before sending another GM.
-4. Use `timeUntilNextGM()` to check your cooldown status.
+---
 
-## Security Considerations
-- The contract prevents users from bypassing the 24-hour rule.
-- ETH fee transfer is handled securely.
-- Immutable fee and recipient address prevent unauthorized changes.
+## 🧾 Events
 
-## License
-This contract is licensed under the **MIT License**.
+```solidity
+event OnChainGMEvent(address indexed sender, address indexed referrer);
+event ReferralFailed(address indexed referrer, uint256 amount);
+```
 
+---
 
+## 🔐 How It Works
 
+1. User sends exactly `0.000029 ETH` by calling `onChainGM(referrer)`  
+2. Contract checks if `msg.sender` has already GMed today (based on UTC)  
+3. If not:
+   - Attempts to send 10% of fee to `referrer`  
+   - Sends remaining ETH to `feeRecipient`  
+   - Emits `OnChainGMEvent`  
+4. If referral payment fails, logs `ReferralFailed` but does **not revert**  
+
+---
+
+## 🧪 Example (Remix / Etherscan)
+
+```solidity
+onChainGM("0xYourReferrersAddress")
+```
+
+> 🔔 Be sure to send exactly `0.000029 ETH` as value.
+
+---
+
+## 🛠 Deployment
+
+The contract can be deployed to any EVM-compatible chain.  
+There is **no owner**, **no upgradeability**, and **no admin** — it's fully immutable.
+
+---
+
+## 🧭 License
+
+MIT License — feel free to build on it, fork it, or integrate it into your dApp.
+
+---
+
+## ❤️ Support
+
+If you like the project, send your on-chain GM with a referral to share the love 🌞
